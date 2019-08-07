@@ -1,9 +1,10 @@
 <?php
+
 /**
-* HybridAuth
-* http://hybridauth.sourceforge.net | http://github.com/hybridauth/hybridauth
-* (c) 2009-2015, HybridAuth authors | http://hybridauth.sourceforge.net/licenses.html
-*/
+ * HybridAuth
+ * http://hybridauth.sourceforge.net | http://github.com/hybridauth/hybridauth
+ * (c) 2009-2015, HybridAuth authors | http://hybridauth.sourceforge.net/licenses.html
+ */
 
 // A service client for the OAuth 2 flow.
 // v0.1.1
@@ -14,14 +15,14 @@ class OAuth2Client
   public $token_url        = "";
   public $token_info_url   = "";
 
-  public $client_id        = "" ;
-  public $client_secret    = "" ;
-  public $redirect_uri     = "" ;
-  public $access_token     = "" ;
-  public $refresh_token    = "" ;
+  public $client_id        = "";
+  public $client_secret    = "";
+  public $redirect_uri     = "";
+  public $access_token     = "";
+  public $refresh_token    = "";
 
-  public $access_token_expires_in = "" ;
-  public $access_token_expires_at = "" ;
+  public $access_token_expires_in = "";
+  public $access_token_expires_at = "";
 
   //--
 
@@ -43,7 +44,7 @@ class OAuth2Client
 
   //--
 
-  public function __construct( $client_id = false, $client_secret = false, $redirect_uri='', $compressed = false )
+  public function __construct($client_id = false, $client_secret = false, $redirect_uri = '', $compressed = false)
   {
     $this->client_id       = $client_id;
     $this->client_secret   = $client_secret;
@@ -51,7 +52,7 @@ class OAuth2Client
     $this->curl_compressed = $compressed;
   }
 
-  public function authorizeUrl( $extras = array() )
+  public function authorizeUrl($extras = array())
   {
     $params = array(
       "client_id"     => $this->client_id,
@@ -59,14 +60,14 @@ class OAuth2Client
       "response_type" => "code"
     );
 
-    if( count($extras) )
-      foreach( $extras as $k=>$v )
+    if (count($extras))
+      foreach ($extras as $k => $v)
         $params[$k] = $v;
 
     return $this->authorize_url . "?" . http_build_query($params, '', '&');
   }
 
-  public function authenticate( $code )
+  public function authenticate($code)
   {
     $params = array(
       "client_id"     => $this->client_id,
@@ -76,20 +77,20 @@ class OAuth2Client
       "code"          => $code
     );
 
-    $response = $this->request( $this->token_url, $params, $this->curl_authenticate_method );
+    $response = $this->request($this->token_url, $params, $this->curl_authenticate_method);
 
-    $response = $this->parseRequestResult( $response );
+    $response = $this->parseRequestResult($response);
 
-    if( ! $response || ! isset( $response->access_token ) ){
-      throw new Exception( "The Authorization Service has return: " . $response->error );
+    if (!$response || !isset($response->access_token)) {
+      throw new Exception("The Authorization Service has return: " . $response->error);
     }
 
-    if( isset( $response->access_token  ) )  $this->access_token           = $response->access_token;
-    if( isset( $response->refresh_token ) ) $this->refresh_token           = $response->refresh_token;
-    if( isset( $response->expires_in    ) ) $this->access_token_expires_in = $response->expires_in;
+    if (isset($response->access_token))  $this->access_token           = $response->access_token;
+    if (isset($response->refresh_token)) $this->refresh_token           = $response->refresh_token;
+    if (isset($response->expires_in)) $this->access_token_expires_in = $response->expires_in;
 
     // calculate when the access token expire
-    if( isset($response->expires_in)) {
+    if (isset($response->expires_in)) {
       $this->access_token_expires_at = time() + $response->expires_in;
     }
 
@@ -98,18 +99,18 @@ class OAuth2Client
 
   public function authenticated()
   {
-    if ( $this->access_token ){
-      if ( $this->token_info_url && $this->refresh_token ){
+    if ($this->access_token) {
+      if ($this->token_info_url && $this->refresh_token) {
         // check if this access token has expired,
-        $tokeninfo = $this->tokenInfo( $this->access_token );
+        $tokeninfo = $this->tokenInfo($this->access_token);
 
         // if yes, access_token has expired, then ask for a new one
-        if( $tokeninfo && isset( $tokeninfo->error ) ){
-          $response = $this->refreshToken( $this->refresh_token );
+        if ($tokeninfo && isset($tokeninfo->error)) {
+          $response = $this->refreshToken($this->refresh_token);
 
           // if wrong response
-          if( ! isset( $response->access_token ) || ! $response->access_token ){
-            throw new Exception( "The Authorization Service has return an invalid response while requesting a new access token. given up!" );
+          if (!isset($response->access_token) || !$response->access_token) {
+            throw new Exception("The Authorization Service has return an invalid response while requesting a new access token. given up!");
           }
 
           // set new access_token
@@ -124,26 +125,34 @@ class OAuth2Client
   }
 
   /**
-  * Format and sign an oauth for provider api
-  */
-  public function api( $url, $method = "GET", $parameters = array(), $decode_json = true )
+   * Format and sign an oauth for provider api
+   */
+  public function api($url, $method = "GET", $parameters = array(), $decode_json = true)
   {
-    if ( strrpos($url, 'http://') !== 0 && strrpos($url, 'https://') !== 0 ) {
+    if (strrpos($url, 'http://') !== 0 && strrpos($url, 'https://') !== 0) {
       $url = $this->api_base_url . $url;
     }
 
     $parameters[$this->sign_token_name] = $this->access_token;
     $response = null;
 
-    switch( $method ){
-      case 'GET'  : $response = $this->request( $url, $parameters, "GET"  ); break;
-      case 'POST' : $response = $this->request( $url, $parameters, "POST" ); break;
-      case 'DELETE' : $response = $this->request( $url, $parameters, "DELETE" ); break;
-      case 'PATCH'  : $response = $this->request( $url, $parameters, "PATCH" ); break;
+    switch ($method) {
+      case 'GET':
+        $response = $this->request($url, $parameters, "GET");
+        break;
+      case 'POST':
+        $response = $this->request($url, $parameters, "POST");
+        break;
+      case 'DELETE':
+        $response = $this->request($url, $parameters, "DELETE");
+        break;
+      case 'PATCH':
+        $response = $this->request($url, $parameters, "PATCH");
+        break;
     }
 
-    if( $response && $decode_json ){
-      return $this->response = json_decode( $response );
+    if ($response && $decode_json) {
+      return $this->response = json_decode($response);
     }
 
     return $this->response = $response;
@@ -156,23 +165,23 @@ class OAuth2Client
    */
   public function getResponse()
   {
-      return $this->response;
+    return $this->response;
   }
 
   /**
-  * GET wrapper for provider apis request
-  */
-  function get( $url, $parameters = array(), $decode_json = true )
+   * GET wrapper for provider apis request
+   */
+  function get($url, $parameters = array(), $decode_json = true)
   {
-    return $this->api( $url, 'GET', $parameters, $decode_json );
+    return $this->api($url, 'GET', $parameters, $decode_json);
   }
 
   /**
-  * POST wrapper for provider apis request
-  */
-  function post( $url, $parameters = array(), $decode_json = true )
+   * POST wrapper for provider apis request
+   */
+  function post($url, $parameters = array(), $decode_json = true)
   {
-    return $this->api( $url, 'POST', $parameters, $decode_json );
+    return $this->api($url, 'POST', $parameters, $decode_json);
   }
 
   // -- tokens
@@ -180,11 +189,11 @@ class OAuth2Client
   public function tokenInfo($accesstoken)
   {
     $params['access_token'] = $this->access_token;
-    $response = $this->request( $this->token_info_url, $params );
-    return $this->parseRequestResult( $response );
+    $response = $this->request($this->token_info_url, $params);
+    return $this->parseRequestResult($response);
   }
 
-  public function refreshToken( $parameters = array() )
+  public function refreshToken($parameters = array())
   {
     $params = array(
       "client_id"     => $this->client_id,
@@ -192,45 +201,45 @@ class OAuth2Client
       "grant_type"    => "refresh_token"
     );
 
-    foreach($parameters as $k=>$v ){
+    foreach ($parameters as $k => $v) {
       $params[$k] = $v;
     }
 
-    $response = $this->request( $this->token_url, $params, "POST" );
-    return $this->parseRequestResult( $response );
+    $response = $this->request($this->token_url, $params, "POST");
+    return $this->parseRequestResult($response);
   }
 
   // -- utilities
 
-  private function request( $url, $params=false, $type="GET" )
+  public function request($url, $params = array(), $type = "GET")
   {
-    Hybrid_Logger::info( "Enter OAuth2Client::request( $url )" );
-    Hybrid_Logger::debug( "OAuth2Client::request(). dump request params: ", serialize( $params ) );
+    Hybrid_Logger::info("Enter OAuth2Client::request( $url )");
+    Hybrid_Logger::debug("OAuth2Client::request(). dump request params: ", serialize($params));
 
-	$urlEncodedParams = http_build_query($params, '', '&');
+    $urlEncodedParams = http_build_query($params, '', '&');
 
-    if( $type == "GET" ){
-      $url = $url . ( strpos( $url, '?' ) ? '&' : '?' ) . $urlEncodedParams;
+    if ($type == "GET") {
+      $url = $url . (strpos($url, '?') ? '&' : '?') . $urlEncodedParams;
     }
 
     $this->http_info = array();
     $ch = curl_init();
 
-    curl_setopt($ch, CURLOPT_URL            , $url );
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER , 1 );
-    curl_setopt($ch, CURLOPT_TIMEOUT        , $this->curl_time_out );
-    curl_setopt($ch, CURLOPT_USERAGENT      , $this->curl_useragent );
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT , $this->curl_connect_time_out );
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , $this->curl_ssl_verifypeer );
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST , $this->curl_ssl_verifyhost );
-    curl_setopt($ch, CURLOPT_HTTPHEADER     , $this->curl_header );
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_TIMEOUT, $this->curl_time_out);
+    curl_setopt($ch, CURLOPT_USERAGENT, $this->curl_useragent);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->curl_connect_time_out);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->curl_ssl_verifypeer);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->curl_ssl_verifyhost);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $this->curl_header);
 
-    if ($this->curl_compressed){
+    if ($this->curl_compressed) {
       curl_setopt($ch, CURLOPT_ENCODING, "gzip,deflate");
     }
 
-    if($this->curl_proxy){
-      curl_setopt( $ch, CURLOPT_PROXY        , $this->curl_proxy);
+    if ($this->curl_proxy) {
+      curl_setopt($ch, CURLOPT_PROXY, $this->curl_proxy);
     }
 
     if ($type == "POST") {
@@ -249,54 +258,54 @@ class OAuth2Client
       }
     }
 
-    if( $type == "DELETE" ){
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+    if ($type == "DELETE") {
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
     }
-    if( $type == "PATCH" ){
+    if ($type == "PATCH") {
       curl_setopt($ch, CURLOPT_POST, 1);
-      if($params) curl_setopt( $ch, CURLOPT_POSTFIELDS, $params );
+      if ($params) curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PATCH");
     }
     $response = curl_exec($ch);
-    if( $response === false ) {
-        Hybrid_Logger::error( "OAuth2Client::request(). curl_exec error: ", curl_error($ch) );
+    if ($response === false) {
+      Hybrid_Logger::error("OAuth2Client::request(). curl_exec error: ", curl_error($ch));
     }
-    Hybrid_Logger::debug( "OAuth2Client::request(). dump request info: ", serialize( curl_getinfo($ch) ) );
-    Hybrid_Logger::debug( "OAuth2Client::request(). dump request result: ", serialize( $response ) );
+    Hybrid_Logger::debug("OAuth2Client::request(). dump request info: ", serialize(curl_getinfo($ch)));
+    Hybrid_Logger::debug("OAuth2Client::request(). dump request result: ", serialize($response));
 
     $this->http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $this->http_info = array_merge($this->http_info, curl_getinfo($ch));
 
-    curl_close ($ch);
+    curl_close($ch);
 
     return $response;
   }
 
-  private function parseRequestResult( $result )
+  private function parseRequestResult($result)
   {
-    if( json_decode( $result ) ) return json_decode( $result );
+    if (json_decode($result)) return json_decode($result);
 
-    parse_str( $result, $output );
+    parse_str($result, $output);
 
     $result = new StdClass();
 
-    foreach( $output as $k => $v )
+    foreach ($output as $k => $v)
       $result->$k = $v;
 
     return $result;
   }
   /**
- * DELETE wrapper for provider apis request
- */
- function delete( $url, $parameters = array() )
- {
-   return $this->api( $url, 'DELETE', $parameters );
- }
- /**
- * PATCH wrapper for provider apis request
- */
- function patch( $url, $parameters = array() )
- {
-    return $this->api( $url, 'PATCH', $parameters );
- }
+   * DELETE wrapper for provider apis request
+   */
+  function delete($url, $parameters = array())
+  {
+    return $this->api($url, 'DELETE', $parameters);
+  }
+  /**
+   * PATCH wrapper for provider apis request
+   */
+  function patch($url, $parameters = array())
+  {
+    return $this->api($url, 'PATCH', $parameters);
+  }
 }

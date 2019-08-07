@@ -13,7 +13,8 @@
  *
  * Generally, Hybrid_Auth is the only class you should instanciate and use throughout your application.
  */
-class Hybrid_Auth {
+class Hybrid_Auth
+{
 
 	public static $version = "2.11.0";
 
@@ -51,7 +52,8 @@ class Hybrid_Auth {
 	 *
 	 * @param array $config Configuration array or path to a configratuion file
 	 */
-	function __construct($config) {
+	function __construct($config)
+	{
 		Hybrid_Auth::initialize($config);
 	}
 
@@ -62,7 +64,8 @@ class Hybrid_Auth {
 	 * @return void
 	 * @throws Exception
 	 */
-	public static function initialize($config) {
+	public static function initialize($config)
+	{
 		if (!is_array($config) && !file_exists($config)) {
 			throw new Exception("Hybriauth config does not exist on the given path.", 1);
 		}
@@ -182,7 +185,8 @@ class Hybrid_Auth {
 	 *
 	 * @return Hybrid_Storage
 	 */
-	public static function storage() {
+	public static function storage()
+	{
 		return Hybrid_Auth::$store;
 	}
 
@@ -190,7 +194,8 @@ class Hybrid_Auth {
 	 * Get hybridauth session data
 	 * @return string|null
 	 */
-	function getSessionData() {
+	function getSessionData()
+	{
 		return Hybrid_Auth::storage()->getSessionData();
 	}
 
@@ -200,7 +205,8 @@ class Hybrid_Auth {
 	 * @param string $sessiondata Serialized session data
 	 * @retun void
 	 */
-	function restoreSessionData($sessiondata = null) {
+	function restoreSessionData($sessiondata = null)
+	{
 		Hybrid_Auth::storage()->restoreSessionData($sessiondata);
 	}
 
@@ -220,7 +226,8 @@ class Hybrid_Auth {
 	 * @param array  $params      Params
 	 * @return
 	 */
-	public static function authenticate($providerId, $params = null) {
+	public static function authenticate($providerId, $params = null)
+	{
 		Hybrid_Logger::info("Enter Hybrid_Auth::authenticate( $providerId )");
 
 		if (!Hybrid_Auth::storage()->get("hauth_session.$providerId.is_logged_in")) {
@@ -241,7 +248,8 @@ class Hybrid_Auth {
 	 * @param string $providerId ID of the provider
 	 * @return Hybrid_Provider_Adapter
 	 */
-	public static function getAdapter($providerId = null) {
+	public static function getAdapter($providerId = null)
+	{
 		Hybrid_Logger::info("Enter Hybrid_Auth::getAdapter( $providerId )");
 		return Hybrid_Auth::setup($providerId);
 	}
@@ -253,7 +261,8 @@ class Hybrid_Auth {
 	 * @param array  $params     Adapter params
 	 * @return Hybrid_Provider_Adapter
 	 */
-	public static function setup($providerId, $params = null) {
+	public static function setup($providerId, $params = null)
+	{
 		Hybrid_Logger::debug("Enter Hybrid_Auth::setup( $providerId )", $params);
 
 		if (!$params) {
@@ -284,7 +293,8 @@ class Hybrid_Auth {
 	 * @param string $providerId ID of the provider
 	 * @return bool
 	 */
-	public static function isConnectedWith($providerId) {
+	public static function isConnectedWith($providerId)
+	{
 		return (bool) Hybrid_Auth::storage()->get("hauth_session.{$providerId}.is_logged_in");
 	}
 
@@ -292,7 +302,8 @@ class Hybrid_Auth {
 	 * Return array listing all authenticated providers
 	 * @return array
 	 */
-	public static function getConnectedProviders() {
+	public static function getConnectedProviders()
+	{
 		$idps = array();
 
 		foreach (Hybrid_Auth::$config["providers"] as $idpid => $params) {
@@ -316,7 +327,8 @@ class Hybrid_Auth {
 	 * </code>
 	 * @return array
 	 */
-	public static function getProviders() {
+	public static function getProviders()
+	{
 		$idps = array();
 
 		foreach (Hybrid_Auth::$config["providers"] as $idpid => $params) {
@@ -336,7 +348,8 @@ class Hybrid_Auth {
 	 * A generic function to logout all connected provider at once
 	 * @return void
 	 */
-	public static function logoutAllProviders() {
+	public static function logoutAllProviders()
+	{
 		$idps = Hybrid_Auth::getConnectedProviders();
 
 		foreach ($idps as $idp) {
@@ -351,8 +364,9 @@ class Hybrid_Auth {
 	 * @param string $url  URL to redirect to
 	 * @param string $mode PHP|JS
 	 */
-	public static function redirect($url, $mode = "PHP") {
-		if(!$mode){
+	public static function redirect($url, $mode = "PHP")
+	{
+		if (!$mode) {
 			$mode = 'PHP';
 		}
 		Hybrid_Logger::info("Enter Hybrid_Auth::redirect( $url, $mode )");
@@ -386,16 +400,17 @@ class Hybrid_Auth {
 	 * @param bool $request_uri true to get $_SERVER['REQUEST_URI'], false for $_SERVER['PHP_SELF']
 	 * @return string
 	 */
-	public static function getCurrentUrl($request_uri = true) {
+	public static function getCurrentUrl($request_uri = true)
+	{
 		if (php_sapi_name() == 'cli') {
 			return '';
 		}
 
 		$protocol = 'http://';
 
-		if ((isset($_SERVER['HTTPS']) && ( $_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1 ))
-				|| (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https'))
-		{
+		if ((isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1))
+			|| (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')
+		) {
 			$protocol = 'https://';
 		}
 
@@ -415,5 +430,4 @@ class Hybrid_Auth {
 		// return current url
 		return $url;
 	}
-
 }
