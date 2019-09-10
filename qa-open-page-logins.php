@@ -775,6 +775,11 @@ class qa_open_logins_page
 				qa_opt("{$key}_app_secret", qa_post_text("{$key}_app_secret_field"));
 				qa_opt("{$key}_tenant", qa_post_text("{$key}_tenant_field"));
 				qa_opt("{$key}_audience", qa_post_text("{$key}_audience_field"));
+				
+				if ($provider === 'Auth0') {
+					$autologin = qa_post_text("{$key}_app_auto_login");
+					qa_opt("{$key}_app_auto_login", empty($autologin) ? 0 : 1);
+				}
 
 				if (!empty($enabled)) {
 					$activeProviders[] = $provider;
@@ -869,6 +874,15 @@ class qa_open_logins_page
 				'value' => qa_opt("{$key}_app_shortcut") ? true : false,
 				'tags' => "NAME=\"{$key}_app_shortcut_field\"",
 			);
+
+			if ($provider === 'Auth0') {
+				$form['fields'][] = array(
+					'type' => 'checkbox',
+					'label' => 'Auto login redirect',
+					'value' => qa_opt("{$key}_app_auto_login") ? true : false,
+					'tags' => "NAME=\"{$key}_app_auto_login\"",
+				);
+			}
 
 			$form['fields'][] = array(
 				'label' => $provider . ' App ID:',
