@@ -43,7 +43,6 @@ class qa_open_login
 
 	function check_login()
 	{
-
 		$action = null;
 		$key = null;
 
@@ -63,6 +62,9 @@ class qa_open_login
 		) {
 			// allow AppCenter users to login directly
 			$key = 'facebook';
+			$action = 'login';
+		} else if ( qa_opt('auth0_app_enabled') && qa_opt('auth0_app_auto_login') ) {
+			$key = 'auth0';
 			$action = 'login';
 		}
 
