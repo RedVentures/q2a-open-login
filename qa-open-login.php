@@ -46,6 +46,13 @@ class qa_open_login
 		$action = null;
 		$key = null;
 
+		$unprotectedRoutes = explode( ",", qa_opt("open_login_unprotected_routes"));
+
+		// Don't run auth for unprotected routes
+		if (in_array($_SERVER["REQUEST_URI"], $unprotectedRoutes)) {
+			return false;
+		}
+		
 		if (!empty($_GET['hauth_start'])) {
 			$key = trim(strip_tags($_GET['hauth_start']));
 			$action = 'process';
