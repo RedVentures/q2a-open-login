@@ -793,6 +793,8 @@ class qa_open_logins_page
 			);
 
 			// also save the other configurations
+			qa_opt("open_login_unprotected_routes", qa_post_text("open_login_unprotected_routes"));
+
 			$hidecss = qa_post_text('open_login_css');
 			qa_opt('open_login_css', empty($hidecss) ? 0 : 1);
 
@@ -801,7 +803,6 @@ class qa_open_logins_page
 
 			$nologin = qa_post_text('open_login_hideform');
 			qa_opt('open_login_hideform', empty($nologin) ? 0 : 1);
-
 			$remember = qa_post_text('open_login_remember');
 			qa_opt('open_login_remember', empty($remember) ? 0 : 1);
 			$saved = true;
@@ -811,6 +812,12 @@ class qa_open_logins_page
 			'ok' => $saved ? 'Open Login preferences saved' : null,
 
 			'fields' => array(
+				array(
+					'label' => 'Unprotected Routes (comma separated list):',
+					'value' => qa_html(qa_opt('open_login_unprotected_routes')),
+					'tags' => "NAME=\"open_login_unprotected_routes\"",
+				),
+
 				array(
 					'type' => 'checkbox',
 					'label' => 'Don\'t inline CSS. I included the styles in my theme\'s CSS file',
