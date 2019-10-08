@@ -26,18 +26,30 @@
 	More about this license: http://www.question2answer.org/license.php
 */
 
+require_once("Hybrid/Auth.php");
+
 class qa_open_login
 {
 
 	var $directory;
 	var $urltoroot;
 	var $provider;
+	var $hybridauth;
 
 	function load_module($directory, $urltoroot, $type, $provider)
 	{
 		$this->directory = $directory;
 		$this->urltoroot = $urltoroot;
 		$this->provider = $provider;
+
+		// after login come back to the same page
+		$loginCallback = qa_path('', array(), qa_opt('site_url'));
+		
+		// prepare the configuration of HybridAuth
+		$config = $this->getConfig($loginCallback);
+		
+		// try to logout
+		$this->hybridauth = new Hybrid_Auth($config);
 	}
 
 
@@ -98,8 +110,7 @@ class qa_open_login
 
 			try {
 				// try to login
-				$hybridauth = new Hybrid_Auth($config);
-				$adapter = $hybridauth->authenticate($this->provider);
+				$adapter = $this->hybridauth->authenticate($this->provider);
 
 				// if ok, create/refresh the user account
 				$user = $adapter->getUserProfile();
@@ -153,20 +164,9 @@ class qa_open_login
 
 	function do_logout()
 	{
-		// after login come back to the same page
-		$loginCallback = qa_path('', array(), qa_opt('site_url'));
-
-		require_once("Hybrid/Auth.php");
-
-		// prepare the configuration of HybridAuth
-		$config = $this->getConfig($loginCallback);
-
 		try {
-			// try to logout
-			$hybridauth = new Hybrid_Auth($config);
-
-			if ($hybridauth->isConnectedWith($this->provider)) {
-				$adapter = $hybridauth->getAdapter($this->provider);
+			if ($this->hybridauth->isConnectedWith($this->provider)) {
+				$adapter = $this->hybridauth->getAdapter($this->provider);
 				$adapter->logout();
 			}
 		} catch (Exception $e) {
@@ -203,7 +203,39 @@ class qa_open_login
 
 	function logout_html($tourl)
 	{
+
+		// Hijacking logout_html hook since it runs on every request.
+		// This way we ensure that all users are properly being prompted 
+		// to re-login when their tokens expire
+		if (!$this->check_if_user_is_still_valid()) {
+			header('Location: /index.php?qa=logout');
+			return;
+		}
+
 		self::printCode($this->provider, $tourl, 'menu', 'logout');
+	}
+
+	function check_if_user_is_still_valid() {
+		// Always default to false to ensure users are still valid.
+		// Other providers will need to be implemented, or a generic way to handle
+		// checking if users are still valid needs to be implemented. We only care for
+		// Auth0 at the moment so only Auth0 will be handled.
+		$is_valid = false;
+
+		if (qa_opt('auth0_app_enabled')) {
+			if ($this->hybridauth->isConnectedWith($this->provider)) {
+				$providerAdapter = $this->hybridauth->getAdapter($this->provider);
+				
+				// Ensure that is_valid is set to false when token is expired
+				if ($providerAdapter->adapter->api->access_token_expires_at <= time()) {
+					$is_valid = false;
+				} else { // otherwise set is_valid to true
+					$is_valid = true;
+				}
+			}
+		}
+
+		return $is_valid;
 	}
 
 
