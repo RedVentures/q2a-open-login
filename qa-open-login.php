@@ -209,7 +209,9 @@ class qa_open_login
 		// to re-login when their tokens expire
 		if (!$this->check_if_user_is_still_valid()) {
 			header('Location: /index.php?qa=logout');
-			return;
+			exit;
+		} else {
+			echo 'SV';
 		}
 
 		self::printCode($this->provider, $tourl, 'menu', 'logout');
@@ -232,7 +234,11 @@ class qa_open_login
 				} else { // otherwise set is_valid to true
 					$is_valid = true;
 				}
+			} else {
+				echo 'NC';
 			}
+		} else {
+			echo 'ANC';
 		}
 
 		return $is_valid;
