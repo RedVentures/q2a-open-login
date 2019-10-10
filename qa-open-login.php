@@ -93,15 +93,8 @@ class qa_open_login
 
 		if ($action == 'login') {
 			// handle the login
-
-			// after login come back to the same page
-			$loginCallback = qa_path('', array(), qa_opt('site_url'));
-
 			require_once $this->directory . 'Hybrid/Auth.php';
 			require_once $this->directory . 'qa-open-utils.php';
-
-			// prepare the configuration of HybridAuth
-			$config = $this->getConfig($loginCallback);
 
 			$topath = qa_get('to');
 			if (!isset($topath)) {
@@ -153,7 +146,6 @@ class qa_open_login
 		}
 
 		if ($action == 'process') {
-			require_once("Hybrid/Auth.php");
 			require_once("Hybrid/Endpoint.php");
 			Hybrid_Endpoint::process();
 		}
@@ -210,8 +202,6 @@ class qa_open_login
 		if (!$this->check_if_user_is_still_valid()) {
 			header('Location: /index.php?qa=logout');
 			exit;
-		} else {
-			echo 'SV';
 		}
 
 		self::printCode($this->provider, $tourl, 'menu', 'logout');
@@ -234,11 +224,7 @@ class qa_open_login
 				} else { // otherwise set is_valid to true
 					$is_valid = true;
 				}
-			} else {
-				echo 'NC';
 			}
-		} else {
-			echo 'ANC';
 		}
 
 		return $is_valid;
