@@ -34,7 +34,7 @@ class qa_open_login
 	var $directory;
 	var $urltoroot;
 	var $provider;
-	var $hybridauth;
+	var $config;
 
 	function load_module($directory, $urltoroot, $type, $provider)
 	{
@@ -46,10 +46,7 @@ class qa_open_login
 		$loginCallback = qa_path('', array(), qa_opt('site_url'));
 		
 		// prepare the configuration of HybridAuth
-		$config = $this->getConfig($loginCallback);
-		
-		// try to logout
-		$this->hybridauth = new Hybrid_Auth($config);
+		$this->config = $this->getConfig($loginCallback);
 	}
 
 
@@ -93,7 +90,6 @@ class qa_open_login
 
 		if ($action == 'login') {
 			// handle the login
-			require_once $this->directory . 'Hybrid/Auth.php';
 			require_once $this->directory . 'qa-open-utils.php';
 
 			$topath = qa_get('to');
@@ -103,7 +99,8 @@ class qa_open_login
 
 			try {
 				// try to login
-				$adapter = $this->hybridauth->authenticate($this->provider);
+				$hybridauth = new Hybrid_Auth($this->config);
+				$adapter = $hybridauth->authenticate($this->provider);
 
 				// if ok, create/refresh the user account
 				$user = $adapter->getUserProfile();
@@ -157,8 +154,9 @@ class qa_open_login
 	function do_logout()
 	{
 		try {
-			if ($this->hybridauth->isConnectedWith($this->provider)) {
-				$adapter = $this->hybridauth->getAdapter($this->provider);
+			$hybridauth = new Hybrid_Auth($this->config);
+			if ($hybridauth->isConnectedWith($this->provider)) {
+				$adapter = $hybridauth->getAdapter($this->provider);
 				$adapter->logout();
 			}
 		} catch (Exception $e) {
@@ -204,7 +202,7 @@ class qa_open_login
 			exit;
 		}
 
-		self::printCode($this->provider, $tourl, 'menu', 'logout');
+		// No need for a logout button ... look at git history to enable agains
 	}
 
 	function check_if_user_is_still_valid() {
@@ -215,8 +213,9 @@ class qa_open_login
 		$is_valid = false;
 
 		if (qa_opt('auth0_app_enabled')) {
-			if ($this->hybridauth->isConnectedWith($this->provider)) {
-				$providerAdapter = $this->hybridauth->getAdapter($this->provider);
+			$hybridauth = new Hybrid_Auth($this->config);
+			if ($hybridauth->isConnectedWith($this->provider)) {
+				$providerAdapter = $hybridauth->getAdapter($this->provider);
 				
 				// Ensure that is_valid is set to false when token is expired
 				if ($providerAdapter->adapter->api->access_token_expires_at <= time()) {
