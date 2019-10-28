@@ -201,7 +201,7 @@ class qa_open_login
 		// This way we ensure that all users are properly being prompted 
 		// to re-login when their tokens expire
 		if (!$this->check_if_user_is_still_valid()) {
-			$this->do_logout();
+			header('Location: /index.php?qa=logout');
 			exit;
 		}
 
