@@ -54,9 +54,8 @@ class qa_open_login
 	{
 		$action = null;
 		$key = null;
-
+		
 		$unprotectedRoutes = explode( ",", qa_opt("open_login_unprotected_routes"));
-
 		// Don't run auth for unprotected routes
 		if (in_array($_SERVER["REQUEST_URI"], $unprotectedRoutes)) {
 			return false;
@@ -83,28 +82,30 @@ class qa_open_login
 			$key = 'auth0';
 			$action = 'login';
 		}
-
 		if ($key == null || strcasecmp($key, $this->provider) != 0) {
 			return false;
 		}
-
+		
 		if ($action == 'login') {
 			// handle the login
+			// after login come back to the same page
+			$loginCallback = qa_path('', array(), qa_opt('site_url'));
 			require_once $this->directory . 'qa-open-utils.php';
-
+			
+			// prepare the configuration of HybridAuth
+			$config = $this->getConfig($loginCallback);
 			$topath = qa_get('to');
+			
 			if (!isset($topath)) {
 				$topath = ''; // redirect to front page
 			}
 
 			try {
 				// try to login
-				$hybridauth = new Hybrid_Auth($this->config);
+				$hybridauth = new Hybrid_Auth($config);
 				$adapter = $hybridauth->authenticate($this->provider);
-
 				// if ok, create/refresh the user account
 				$user = $adapter->getUserProfile();
-
 				$duplicates = 0;
 				if (!empty($user))
 					$duplicates = qa_log_in_external_user($key, $user->identifier, array(
@@ -117,7 +118,6 @@ class qa_open_login
 						'about' => @$user->description,
 						'avatar' => strlen(@$user->photoURL) ? qa_retrieve_url($user->photoURL) : null,
 					));
-
 				if ($duplicates > 0) {
 					qa_redirect('logins', array('confirm' => '1', 'to' => $topath));
 				} else {
@@ -129,14 +129,12 @@ class qa_open_login
 				if ($e->getCode() == 6 || $e->getCode() == 7) {
 					$adapter->logout();
 				}
-
 				$qry = 'provider=' . $this->provider . '&code=' . $e->getCode();
 				if (strstr($topath, '?') === false) {
 					$topath .= '?' . $qry;
 				} else {
 					$topath .= '&' . $qry;
 				}
-
 				// redirect
 				qa_redirect_raw(qa_opt('site_url') . $topath);
 			}
@@ -153,8 +151,13 @@ class qa_open_login
 
 	function do_logout()
 	{
+		// after login come back to the same page
+		$loginCallback = qa_path('', array(), qa_opt('site_url'));
+		// prepare the configuration of HybridAuth
+		$config = $this->getConfig($loginCallback);
 		try {
-			$hybridauth = new Hybrid_Auth($this->config);
+			// try to logout
+			$hybridauth = new Hybrid_Auth($config);
 			if ($hybridauth->isConnectedWith($this->provider)) {
 				$adapter = $hybridauth->getAdapter($this->provider);
 				$adapter->logout();
@@ -198,7 +201,7 @@ class qa_open_login
 		// This way we ensure that all users are properly being prompted 
 		// to re-login when their tokens expire
 		if (!$this->check_if_user_is_still_valid()) {
-			header('Location: /index.php?qa=logout');
+			$this->do_logout();
 			exit;
 		}
 
@@ -213,7 +216,12 @@ class qa_open_login
 		$is_valid = false;
 
 		if (qa_opt('auth0_app_enabled')) {
-			$hybridauth = new Hybrid_Auth($this->config);
+			// after login come back to the same page
+			$loginCallback = qa_path('', array(), qa_opt('site_url'));
+			// prepare the configuration of HybridAuth
+			$config = $this->getConfig($loginCallback);
+			$hybridauth = new Hybrid_Auth($config);
+			
 			if ($hybridauth->isConnectedWith($this->provider)) {
 				$providerAdapter = $hybridauth->getAdapter($this->provider);
 				
@@ -228,7 +236,6 @@ class qa_open_login
 
 		return $is_valid;
 	}
-
 
 	static function printCode($provider, $tourl, $context, $action = 'login', $print = true)
 	{
@@ -310,7 +317,6 @@ HTML;
 			return $html;
 		}
 	}
-
 
 	function getConfig($url)
 	{
