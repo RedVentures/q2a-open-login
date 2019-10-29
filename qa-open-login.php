@@ -200,7 +200,7 @@ class qa_open_login
 		// Hijacking logout_html hook since it runs on every request.
 		// This way we ensure that all users are properly being prompted 
 		// to re-login when their tokens expire
-		if (!$this->check_if_user_is_still_valid()) {
+		if (qa_opt('auth0_app_enabled') && !$this->check_if_auth0_user_is_still_valid()) {
 			header('Location: /index.php?qa=logout');
 			exit;
 		}
@@ -208,30 +208,30 @@ class qa_open_login
 		// No need for a logout button ... look at git history to enable agains
 	}
 
-	function check_if_user_is_still_valid() {
+	function check_if_auth0_user_is_still_valid() {
 		// Always default to false to ensure users are still valid.
 		// Other providers will need to be implemented, or a generic way to handle
 		// checking if users are still valid needs to be implemented. We only care for
 		// Auth0 at the moment so only Auth0 will be handled.
 		$is_valid = false;
 
-		if (qa_opt('auth0_app_enabled')) {
+		try {
 			// after login come back to the same page
-			$loginCallback = qa_path('', array(), qa_opt('site_url'));
-			// prepare the configuration of HybridAuth
-			$config = $this->getConfig($loginCallback);
-			$hybridauth = new Hybrid_Auth($config);
-			
-			if ($hybridauth->isConnectedWith($this->provider)) {
-				$providerAdapter = $hybridauth->getAdapter($this->provider);
-				
-				// Ensure that is_valid is set to false when token is expired
-				if ($providerAdapter->adapter->api->access_token_expires_at <= time()) {
-					$is_valid = false;
-				} else { // otherwise set is_valid to true
-					$is_valid = true;
-				}
+			require 'Hybrid/Storage.php';
+		
+			$storage = new Hybrid_Storage();
+			// Grab auth0 token expiration from storage, if none just return 0
+			$tokenExpiration = $storage->get('hauth_session.auth0.token.expires_at') ?: 0;
+
+			// Check if token is still valid
+			if ($tokenExpiration <= time()) {
+				$is_valid = false;
+			} else {
+				$is_valid = true;
 			}
+		} catch (\Exception $err) {
+			// If anything errors out just assume user isn't valid and relogin
+			$is_valid = false;
 		}
 
 		return $is_valid;
