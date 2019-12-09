@@ -111,7 +111,7 @@ class qa_open_login
 					$duplicates = qa_log_in_external_user($key, $user->identifier, array(
 						'email' => @$user->email,
 						'handle' => @$user->displayName,
-						'confirmed' => !empty($user->emailVerified),
+						'confirmed' => true,
 						'name' => @$user->displayName,
 						'location' => @$user->region,
 						'website' => @$user->webSiteURL,
