@@ -107,10 +107,11 @@ class qa_open_login
 				// if ok, create/refresh the user account
 				$user = $adapter->getUserProfile();
 				$duplicates = 0;
+				$emailPrefix = split("@", $user->email)[0];
 				if (!empty($user))
 					$duplicates = qa_log_in_external_user($key, $user->identifier, array(
 						'email' => @$user->email,
-						'handle' => @$user->displayName,
+						'handle' => @$emailPrefix,
 						'confirmed' => true,
 						'name' => @$user->displayName,
 						'location' => @$user->region,
