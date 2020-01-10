@@ -91,15 +91,15 @@ class qa_open_login
 			// after login come back to the same page
 			$loginCallback = qa_path('', array(), qa_opt('site_url'));
 			require_once $this->directory . 'qa-open-utils.php';
-			
+
 			// prepare the configuration of HybridAuth
 			$config = $this->getConfig($loginCallback);
 			$topath = qa_get('to');
-			
+
 			if (!isset($topath)) {
 				$topath = ''; // redirect to front page
 			}
-			
+
 			try {
 				// try to login
 				$hybridauth = new Hybrid_Auth($config);
@@ -107,7 +107,7 @@ class qa_open_login
 				// if ok, create/refresh the user account
 				$user = $adapter->getUserProfile();
 				$duplicates = 0;
-				
+
 				if (!empty($user))
 					$emailPrefix = explode("@", $user->email)[0];
 					$duplicates = qa_log_in_external_user($key, $user->identifier, array(
