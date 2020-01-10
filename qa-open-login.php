@@ -91,11 +91,11 @@ class qa_open_login
 			// after login come back to the same page
 			$loginCallback = qa_path('', array(), qa_opt('site_url'));
 			require_once $this->directory . 'qa-open-utils.php';
-			
+
 			// prepare the configuration of HybridAuth
 			$config = $this->getConfig($loginCallback);
 			$topath = qa_get('to');
-			
+
 			if (!isset($topath)) {
 				$topath = ''; // redirect to front page
 			}
@@ -107,10 +107,12 @@ class qa_open_login
 				// if ok, create/refresh the user account
 				$user = $adapter->getUserProfile();
 				$duplicates = 0;
+
 				if (!empty($user))
+					$emailPrefix = explode("@", $user->email)[0];
 					$duplicates = qa_log_in_external_user($key, $user->identifier, array(
 						'email' => @$user->email,
-						'handle' => @$user->displayName,
+						'handle' => @$emailPrefix,
 						'confirmed' => true,
 						'name' => @$user->displayName,
 						'location' => @$user->region,
@@ -127,7 +129,9 @@ class qa_open_login
 				// not really interested in the error message - for now
 				// however, in case we have errors 6 or 7, then we have to call logout to clean everything up
 				if ($e->getCode() == 6 || $e->getCode() == 7) {
-					$adapter->logout();
+					if (isset($adapter)) {
+						$adapter->logout();
+					}
 				}
 				$qry = 'provider=' . $this->provider . '&code=' . $e->getCode();
 				if (strstr($topath, '?') === false) {
