@@ -99,11 +99,12 @@ class qa_open_login
 			if (!isset($topath)) {
 				$topath = ''; // redirect to front page
 			}
-
+			
+			// try to login
+			$hybridauth = new Hybrid_Auth($config);
+			$adapter = $hybridauth->authenticate($this->provider);
+			
 			try {
-				// try to login
-				$hybridauth = new Hybrid_Auth($config);
-				$adapter = $hybridauth->authenticate($this->provider);
 				// if ok, create/refresh the user account
 				$user = $adapter->getUserProfile();
 				$duplicates = 0;
