@@ -100,11 +100,10 @@ class qa_open_login
 				$topath = ''; // redirect to front page
 			}
 			
-			// try to login
-			$hybridauth = new Hybrid_Auth($config);
-			$adapter = $hybridauth->authenticate($this->provider);
-			
 			try {
+				// try to login
+				$hybridauth = new Hybrid_Auth($config);
+				$adapter = $hybridauth->authenticate($this->provider);
 				// if ok, create/refresh the user account
 				$user = $adapter->getUserProfile();
 				$duplicates = 0;
@@ -130,7 +129,9 @@ class qa_open_login
 				// not really interested in the error message - for now
 				// however, in case we have errors 6 or 7, then we have to call logout to clean everything up
 				if ($e->getCode() == 6 || $e->getCode() == 7) {
-					$adapter->logout();
+					if (isset($adapter)) {
+						$adapter->logout();
+					}
 				}
 				$qry = 'provider=' . $this->provider . '&code=' . $e->getCode();
 				if (strstr($topath, '?') === false) {
